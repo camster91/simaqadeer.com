@@ -6,3 +6,18 @@ backups/
 
 # OS
 .DS_Store
+
+# Node (production deps installed at build time inside the image; not
+# committed so the Docker layer cache + npm ci work correctly)
+node_modules/
+npm-debug.log*
+yarn-error.log
+.pnp.*
+
+# Test / dev artifacts
+coverage/
+.nyc_output/
+
+# Local env overrides
+.env
+.env.local

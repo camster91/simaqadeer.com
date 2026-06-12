@@ -1,37 +1,103 @@
-# simaqadeer.com
+# simaqadeer-app
 
-Static site for Sima Qadeer, author of *Brown Girls, Grown Up* (Curbstone Books / Northwestern University Press, June 2026).
+Node/Express wrapper around the static build at
+[camster91/simaqadeer.com](https://github.com/camster91/simaqadeer.com).
+Serves the built React app and exposes a single `POST /api/contact`
+endpoint that the contact form posts to.
 
-## Stack
+## What this adds over the static build
 
-- Built with Vite + React + TypeScript + Tailwind
-- No build step in the repo — this is the **built static output** ready for any static host
-- Google Fonts: Playfair Display (display), Source Serif 4 (body), Caveat (handwritten), Space Grotesk (UI), IBM Plex Mono (mono)
-- Self-hosted: NORD Light/Regular/Medium/Bold (`.otf`) under `/assets/fonts/` for subheadings
-- Content: `content.json` (book info, events, press kit, contact, SEO)
-- Press kit: 3 mailto request links to simaqadeerAuthor@gmail.com
+| Feature | Static build | This app |
+| --- | --- | --- |
+| Static file serving | ✅ any web host | ✅ via Express + SPA fallback |
+| `POST /api/contact` form backend | ❌ (mailto: shim only) | ✅ Node/Express with validation |
+| Mailto bridge when API is bypassed | ❌ | ✅ shim opens mailto on success |
+| Health endpoint | ❌ | ✅ `GET /healthz` |
+| Graceful shutdown | ❌ | ✅ SIGTERM/SIGINT |
+| JSON-LD `Book` + `Person` schema | ❌ | ✅ |
+| Image weight optimisations | ❌ | ✅ (webp hero/cover) |
 
-## Deploy
+## Local dev
 
-Drop the repo on any static host:
-- GitHub Pages — enable Pages on `main`, root
-- Netlify / Vercel / Cloudflare Pages — drag the folder, done
-- Custom domain — point `simaqadeer.com` A record at the host, set canonical in `index.html`
+```bash
+npm install
+npm start                # serves on :3000
+npm run dev              # same, but with --watch reload
+npm test                 # 14 smoke tests against the running server
+```
 
-## Local preview
+## Docker
+
+```bash
+docker build -t simaqadeer-app:local .
+docker run --rm -p 3000:3000 simaqadeer-app:local
+# or
+docker compose up --build
+```
+
+The image is built multi-stage: a `node:22-alpine` builder installs
+production deps, then a slim runtime stage copies the dep tree + server
++ public/, runs as the unprivileged `node` user, exposes `/healthz` for
+container healthchecks.
+
+## Configuration
+
+All via environment variables (all optional):
+
+| Var | Default | Notes |
+| --- | --- | --- |
+| `PORT` | `3000` | HTTP port to bind |
+| `STATIC_DIR` | `./public` | Where the built static files live |
+| `CONTACT_EMAIL` | `simaqadeerAuthor@gmail.com` | Destination of the contact form mailto |
+
+## API
+
+### `POST /api/contact`
+
+The contact form posts JSON:
+```json
+{ "name": "Jane", "email": "jane@example.com", "subject": "Hello", "message": "..." }
+```
+
+Server validates (length caps, email format, control-char strip), then
+returns a `mailto:` URL the front-end opens:
+
+```json
+{ "success": true, "mailto": "mailto:simaqadeerAuthor@gmail.com?subject=..." }
+```
+
+Validation failures return `400` with `{ success: false, error: "..." }`.
+
+The front-end (`index.html` shim) opens the returned `mailto` URL on
+success so the user's mail client fires. The bundle still sees
+`success: true` and renders its built-in "Thank you" state.
+
+### `GET /healthz`
+
+```json
+{ "status": "ok", "uptime": 12.34 }
+```
+
+For container liveness probes.
+
+## File layout
 
 ```
-python3 -m http.server 8765
+.
+├── Dockerfile                # multi-stage build, node:22-alpine
+├── docker-compose.yml        # local dev single service
+├── .dockerignore             # strip node_modules, .git, etc.
+├── package.json              # express only — no client build
+├── server.js                 # Express app (static + /api/contact)
+├── test/
+│   └── smoke.js              # 14-test suite, node:assert
+└── public/                   # built static site (copied into image)
+    ├── index.html            # entry, with mailto bridge shim
+    ├── content.json          # all site copy + structured data
+    ├── 404.html
+    ├── favicon.svg
+    ├── sitemap.xml
+    ├── robots.txt
+    ├── assets/               # React bundle, CSS, fonts
+    └── images/               # book cover, portrait, hero, og-image
 ```
-
-Then open http://127.0.0.1:8765/.
-
-## Files of note
-
-- `index.html` — entry point, font preloads, OG tags
-- `content.json` — all site copy + structured data
-- `assets/index-CzKR_26g.js` — bundled React app (hashed)
-- `assets/index-ZArAOkPi.css` — bundled Tailwind CSS
-- `assets/fonts/NORD-*.otf` — self-hosted NORD subheading font
-- `images/` — book cover, author portrait, hero bg
-- `404.html`, `robots.txt`, `sitemap.xml` — SEO + error page
