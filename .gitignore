@@ -1,0 +1,8 @@
+# Runtime form submission data — not part of the site
+submissions.json
+
+# Backup dir (used by tools)
+backups/
+
+# OS
+.DS_Store

@@ -1,0 +1,165 @@
+{
+  "site": {
+    "title": "Sima Qadeer | Brown Girls, Grown Up",
+    "description": "Sima Qadeer is a Toronto-based author of Brown Girls, Grown Up — a debut story collection from Curbstone Books / Northwestern University Press.",
+    "author_name": "Sima Qadeer",
+    "tagline": "Stories of identity, belonging & becoming",
+    "instagram_url": "https://www.instagram.com/simaqadeer/",
+    "facebook_url": "https://www.facebook.com/simaqadeer/",
+    "contact_email": ""
+  },
+  "hero": {
+    "name": "Sima Qadeer",
+    "subtitle": "Author of Brown Girls, Grown Up",
+    "handwritten": "Stories of identity, belonging & becoming",
+    "background_image": "/images/hero-bg.png"
+  },
+  "book": {
+    "title": "Brown Girls, Grown Up",
+    "subtitle": "Stories",
+    "description_short": "A poignant and graceful story collection about the clash and harmony of finding one's place in an adult world that feels other.",
+    "description_full": "Brown Girls, Grown Up shines a light on the nuances of modern womanhood with grace, honesty, and charm — moving between humor and heartache as its characters navigate shifting identities, intimacy and aging, motherhood, and belonging across tradition and modernity.",
+    "cover_image": "/images/book-cover.jpg",
+    "metadata": {
+      "format": "Paperback · 272 pages",
+      "pages": "272 pages",
+      "dimensions": "5.50 × 8.50 in",
+      "isbn": "ISBN 9798899480324"
+    },
+    "preorder_links": [
+      {
+        "label": "Preorder — Northwestern University Press",
+        "href": "https://nupress.northwestern.edu/9798899480324/brown-girls-grown-up/",
+        "variant": "primary"
+      },
+      {
+        "label": "Preorder — Indigo",
+        "href": "https://www.indigo.ca/en-ca/brown-girls-grown-up-stories/9798899480324.html",
+        "variant": "secondary"
+      },
+      {
+        "label": "Preorder — Amazon",
+        "href": "https://www.amazon.ca/Brown-Girls-Grown-Up-Stories/dp/B0FX3WHCQJ/",
+        "variant": "secondary"
+      }
+    ]
+  },
+  "about": {
+    "label": "About the Author",
+    "heading": "Writing into the shifting terrain of adulthood",
+    "portrait_image": "/images/portrait-author.jpg",
+    "paragraphs": [
+      "Sima Qadeer is a Toronto-based author whose writing explores identity, belonging, and empowerment. Her debut story collection, Brown Girls, Grown Up, is forthcoming from Curbstone Books / Northwestern University Press.",
+      "In stories that balance humor with heartache, Qadeer writes into the shifting terrain of adulthood — intimacy and aging, motherhood, faith and heritage, and the private negotiations of becoming yourself over and over again.",
+      "She previously worked in public policy and administration, focusing on gender equality with the Canadian International Development Agency and Global Affairs Canada."
+    ]
+  },
+  "quotes": [
+    {
+      "text": "In a series of stories rich with descriptions of lives spent exulting in and reacting to physical bodies, Qadeer contemplates sexual intimacy, intergenerational conflict, sexual identity, and women's friendships with a sophistication and sense of humor that makes for a delightful read. Don't miss this exhilarating collection.",
+      "attribution": "Chaya Bhuvaneswar"
+    },
+    {
+      "text": "Sima Qadeer's Brown Girls, Grown Up is an important — not to mention rollicking and audacious — literary contribution to the reckoning of women in middle age…",
+      "attribution": "Heidi Reimer"
+    }
+  ],
+  "events": [
+    {
+      "date": "June 15, 2026",
+      "time": "",
+      "event": "Brown Girls, Grown Up — Book Released",
+      "location": "Northwestern University Press, Amazon and Indigo worldwide",
+      "link": "",
+      "featured": true
+    },
+    {
+      "date": "July 12, 2026",
+      "time": "12:00 – 4:00 PM",
+      "event": "Book Signing",
+      "location": "Indigo @ Bay and Bloor",
+      "link": "https://www.indigo.ca/en-ca/store-locator/toronto-indigo-bay-and-bloor.html",
+      "featured": false
+    },
+    {
+      "date": "July 18, 2026",
+      "time": "1:00 – 4:00 PM",
+      "event": "Book Signing",
+      "location": "Indigo @ Sherway Gardens",
+      "link": "https://www.indigo.ca/en-ca/store-locator/toronto-indigo-sherway-gardens.html",
+      "featured": false
+    },
+    {
+      "date": "July 25, 2026",
+      "time": "12:00 – 4:00 PM",
+      "event": "Book Signing",
+      "location": "Indigo @ The Well",
+      "link": "https://www.indigo.ca/en-ca/store-locator/toronto-indigo-the-well.html",
+      "featured": false
+    },
+    {
+      "date": "October 10, 2026",
+      "time": "1:00 – 4:00 PM",
+      "event": "Book Signing",
+      "location": "Indigo @ Eaton Center",
+      "link": "https://www.indigo.ca/en-ca/store-locator/toronto-indigo-toronto-eaton-centre.html",
+      "featured": false
+    }
+  ],
+  "press": {
+    "label": "Featured",
+    "heading": "In the Press",
+    "kit_label": "Press Kit",
+    "kit_heading": "Download",
+    "items": [
+      {
+        "publication": "Chicago Review of Books",
+        "title": "Most Anticipated Books of 2026",
+        "link": "https://chireviewofbooks.com/2026/01/06/our-most-anticipated-books-of-2026/"
+      },
+      {
+        "publication": "Brown Girl Bookshelf",
+        "title": "Mother's Day Reading List",
+        "link": "https://www.instagram.com/p/DYKwRPcmX3S/"
+      }
+    ],
+    "kit_files": [
+      {
+        "label": "Request: Author Photo",
+        "href": "mailto:simaqadeerAuthor@gmail.com?subject=Press%20kit%20request%20—%20Brown%20Girls,%20Grown%20Up&body=Hi Sima,%0A%0AI%27d like to request access to the following press kit item(s):%0A%0A— Author Photo%0A%0AFor publication / outlet:%0AExpected use date:%0A%0AThanks!%0A",
+        "available": true
+      },
+      {
+        "label": "Request: Book Cover — JPG",
+        "href": "mailto:simaqadeerAuthor@gmail.com?subject=Press%20kit%20request%20—%20Brown%20Girls,%20Grown%20Up&body=Hi Sima,%0A%0AI%27d like to request access to the following press kit item(s):%0A%0A— Book Cover — JPG%0A%0AFor publication / outlet:%0AExpected use date:%0A%0AThanks!%0A",
+        "available": true
+      },
+      {
+        "label": "Request: Book Cover — PDF",
+        "href": "mailto:simaqadeerAuthor@gmail.com?subject=Press%20kit%20request%20—%20Brown%20Girls,%20Grown%20Up&body=Hi Sima,%0A%0AI%27d like to request access to the following press kit item(s):%0A%0A— Book Cover — PDF%0A%0AFor publication / outlet:%0AExpected use date:%0A%0AThanks!%0A",
+        "available": true
+      }
+    ]
+  },
+  "footer": {
+    "book_title": "Brown Girls, Grown Up",
+    "release_date": "Coming June 2026",
+    "preorder_href": "https://nupress.northwestern.edu/9798899480324/brown-girls-grown-up/",
+    "copyright": "© 2026 Sima Qadeer",
+    "publisher": "Curbstone Books / Northwestern University Press",
+    "nav_sections": [
+      "book",
+      "about",
+      "events",
+      "press",
+      "contact"
+    ]
+  },
+  "contact": {
+    "heading": "Get in Touch",
+    "description": "For event invitations, media requests, bookstore coordination, or rights inquiries, please reach out.",
+    "submit_label": "Send Message",
+    "success_heading": "Thank you",
+    "success_message": "Your message has been received."
+  }
+}
