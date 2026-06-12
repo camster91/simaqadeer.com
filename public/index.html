@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sima Qadeer — Author of Brown Girls, Grown Up</title>
+    <meta name="description" content="Sima Qadeer is a Toronto-based author. Her debut story collection, Brown Girls, Grown Up, is forthcoming from Curbstone Books / Northwestern University Press." />
+    <link rel="canonical" href="https://simaqadeer.com" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="apple-touch-icon" type="image/jpeg" href="./images/portrait-author.jpg" />
+    <meta property="og:title" content="Sima Qadeer — Author of Brown Girls, Grown Up" />
+    <meta property="og:description" content="Toronto-based author exploring identity, belonging, and empowerment. Debut collection forthcoming from Curbstone Books / Northwestern University Press." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://simaqadeer.com" />
+    <meta property="og:image" content="https://simaqadeer.com/images/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="1200" />
+    <meta property="og:image:alt" content="Sima Qadeer, author of Brown Girls, Grown Up" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://simaqadeer.com/images/og-image.jpg" />
+    <meta name="twitter:image:alt" content="Sima Qadeer, author of Brown Girls, Grown Up" />
+    <meta name="theme-color" content="#F5F0E8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Serif+4:ital,wght@0,400;1,400&family=Caveat:wght@400;700&family=Space+Grotesk:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Person",
+          "@id": "https://simaqadeer.com/#author",
+          "name": "Sima Qadeer",
+          "url": "https://simaqadeer.com",
+          "image": "https://simaqadeer.com/images/portrait-author.jpg",
+          "jobTitle": "Author",
+          "worksFor": { "@type": "Organization", "name": "Curbstone Books / Northwestern University Press" },
+          "sameAs": [
+            "https://www.instagram.com/simaqadeer/",
+            "https://www.facebook.com/simaqadeer/"
+          ]
+        },
+        {
+          "@type": "Book",
+          "@id": "https://simaqadeer.com/#book",
+          "name": "Brown Girls, Grown Up",
+          "alternateName": "Brown Girls, Grown Up: Stories",
+          "bookFormat": "https://schema.org/Paperback",
+          "isbn": "9798899480324",
+          "numberOfPages": 272,
+          "datePublished": "2026-06-15",
+          "image": "https://simaqadeer.com/images/book-cover.jpg",
+          "description": "Brown Girls, Grown Up shines a light on the nuances of modern womanhood with grace, honesty, and charm — moving between humor and heartache as its characters navigate shifting identities, intimacy and aging, motherhood, and belonging across tradition and modernity.",
+          "author": { "@id": "https://simaqadeer.com/#author" },
+          "publisher": { "@type": "Organization", "name": "Curbstone Books / Northwestern University Press" },
+          "offers": [
+            {
+              "@type": "Offer",
+              "url": "https://nupress.northwestern.edu/9798899480324/brown-girls-grown-up/",
+              "availability": "https://schema.org/PreOrder",
+              "priceCurrency": "USD",
+              "seller": { "@type": "Organization", "name": "Northwestern University Press" }
+            },
+            {
+              "@type": "Offer",
+              "url": "https://www.indigo.ca/en-ca/brown-girls-grown-up-stories/9798899480324.html",
+              "availability": "https://schema.org/PreOrder",
+              "priceCurrency": "CAD",
+              "seller": { "@type": "Organization", "name": "Indigo" }
+            },
+            {
+              "@type": "Offer",
+              "url": "https://www.amazon.ca/Brown-Girls-Grown-Up-Stories/dp/B0FX3WHCQJ/",
+              "availability": "https://schema.org/PreOrder",
+              "priceCurrency": "CAD",
+              "seller": { "@type": "Organization", "name": "Amazon" }
+            }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://simaqadeer.com/#website",
+          "url": "https://simaqadeer.com",
+          "name": "Sima Qadeer",
+          "inLanguage": "en-CA",
+          "publisher": { "@id": "https://simaqadeer.com/#author" }
+        }
+      ]
+    }
+    </script>
+    <!--
+      Contact-form mailto bridge.
+      The built React bundle POSTs the contact form to /api/contact, then
+      renders a "Thank you" state on success. The bundle does NOT open the
+      server's returned mailto: URL — it only checks `success: true`.
+
+      This shim wraps window.fetch: when a /api/contact POST comes back with
+      a { success: true, mailto: "..." } payload, it opens the mailto so the
+      user's mail client fires. The bundle still sees success and shows the
+      Thank you state. This is a one-line wrapper that keeps the contact
+      form functional without rebuilding the bundle.
+    -->
+    <script>
+      (function () {
+        var origFetch = window.fetch.bind(window);
+        window.fetch = function (input, init) {
+          var p = origFetch(input, init);
+          // Only intercept /api/contact POSTs.
+          var url = typeof input === 'string' ? input : (input && input.url) || '';
+          if (!(init && init.method && init.method.toUpperCase() === 'POST' &&
+                url.indexOf('/api/contact') !== -1)) {
+            return p;
+          }
+          // Clone the response so the bundle can still read it; then open
+          // the mailto on the side. If mailto fails (no mail client, popup
+          // blocked) the bundle still completes its success path.
+          return p.then(function (res) {
+            try {
+              var cloned = res.clone();
+              cloned.json().then(function (j) {
+                if (j && j.success && j.mailto) {
+                  window.open(j.mailto, '_self');
+                }
+              }).catch(function () { /* not JSON — ignore */ });
+            } catch (e) { /* defensive: never let the shim break the fetch */ }
+            return res;
+          });
+        };
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-CzKR_26g.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-ZArAOkPi.css">
+  </head>
+  <body>
+    <a href="#book" class="skip-link">Skip to content</a>
+    <div id="root"></div>
+  </body>
+</html>

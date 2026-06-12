@@ -1,0 +1,26 @@
+# docker-compose.yml — local dev for the Sima Qadeer author site.
+#
+# Build the image, run it, expose :3000 on the host. Health check is
+# already wired into the Dockerfile; compose will surface it as a
+# `healthy` state in `docker compose ps`.
+#
+# Usage:
+#   docker compose up --build
+#   docker compose down
+#   docker compose logs -f app
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: simaqadeer-app:local
+    container_name: simaqadeer-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      CONTACT_EMAIL: "simaqadeerAuthor@gmail.com"
+    restart: unless-stopped
+    # healthcheck is defined in the Dockerfile; do not duplicate here

@@ -1,0 +1,30 @@
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# Editor / OS
+.DS_Store
+.vscode
+.idea
+*.swp
+*.swo
+
+# Node (production deps are copied from the builder stage; the rest is noise)
+node_modules
+npm-debug.log*
+yarn-error.log
+.pnp.*
+
+# Test / dev artifacts
+coverage
+.nyc_output
+
+# Build / cache
+.cache
+.parcel-cache
+dist
+build
+
+# Backup dirs
+backups/

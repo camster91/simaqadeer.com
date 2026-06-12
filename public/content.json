@@ -6,20 +6,20 @@
     "tagline": "Stories of identity, belonging & becoming",
     "instagram_url": "https://www.instagram.com/simaqadeer/",
     "facebook_url": "https://www.facebook.com/simaqadeer/",
-    "contact_email": ""
+    "contact_email": "simaqadeerAuthor@gmail.com"
   },
   "hero": {
     "name": "Sima Qadeer",
     "subtitle": "Author of Brown Girls, Grown Up",
     "handwritten": "Stories of identity, belonging & becoming",
-    "background_image": "/images/hero-bg.png"
+    "background_image": "/images/hero-bg.webp"
   },
   "book": {
     "title": "Brown Girls, Grown Up",
     "subtitle": "Stories",
     "description_short": "A poignant and graceful story collection about the clash and harmony of finding one's place in an adult world that feels other.",
     "description_full": "Brown Girls, Grown Up shines a light on the nuances of modern womanhood with grace, honesty, and charm — moving between humor and heartache as its characters navigate shifting identities, intimacy and aging, motherhood, and belonging across tradition and modernity.",
-    "cover_image": "/images/book-cover.jpg",
+    "cover_image": "/images/book-cover.webp",
     "metadata": {
       "format": "Paperback · 272 pages",
       "pages": "272 pages",
@@ -143,7 +143,7 @@
   },
   "footer": {
     "book_title": "Brown Girls, Grown Up",
-    "release_date": "Coming June 2026",
+    "release_date": "Out June 15, 2026",
     "preorder_href": "https://nupress.northwestern.edu/9798899480324/brown-girls-grown-up/",
     "copyright": "© 2026 Sima Qadeer",
     "publisher": "Curbstone Books / Northwestern University Press",
