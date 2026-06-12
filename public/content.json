@@ -22,7 +22,6 @@
     "cover_image": "/images/book-cover.webp",
     "metadata": {
       "format": "Paperback · 272 pages",
-      "pages": "272 pages",
       "dimensions": "5.50 × 8.50 in",
       "isbn": "ISBN 9798899480324"
     },
@@ -34,7 +33,7 @@
       },
       {
         "label": "Preorder — Indigo",
-        "href": "https://www.indigo.ca/en-ca/brown-girls-grown-up-stories/9798899480324.html",
+        "href": "https://www.indigo.ca/en-ca/search?q=9798899480324",
         "variant": "secondary"
       },
       {
@@ -78,7 +77,7 @@
       "time": "12:00 – 4:00 PM",
       "event": "Book Signing",
       "location": "Indigo @ Bay and Bloor",
-      "link": "https://www.indigo.ca/en-ca/store-locator/toronto-indigo-bay-and-bloor.html",
+      "link": "https://www.indigo.ca/pages/stores/280-indigo-bay-and-bloor",
       "featured": false
     },
     {
@@ -86,7 +85,7 @@
       "time": "1:00 – 4:00 PM",
       "event": "Book Signing",
       "location": "Indigo @ Sherway Gardens",
-      "link": "https://www.indigo.ca/en-ca/store-locator/toronto-indigo-sherway-gardens.html",
+      "link": "https://www.indigo.ca/pages/stores/965-indigo-sherway-gardens",
       "featured": false
     },
     {
@@ -94,15 +93,15 @@
       "time": "12:00 – 4:00 PM",
       "event": "Book Signing",
       "location": "Indigo @ The Well",
-      "link": "https://www.indigo.ca/en-ca/store-locator/toronto-indigo-the-well.html",
+      "link": "https://www.indigo.ca/pages/stores/983-indigo-the-well",
       "featured": false
     },
     {
       "date": "October 10, 2026",
       "time": "1:00 – 4:00 PM",
       "event": "Book Signing",
-      "location": "Indigo @ Eaton Center",
-      "link": "https://www.indigo.ca/en-ca/store-locator/toronto-indigo-toronto-eaton-centre.html",
+      "location": "Indigo @ Eaton Centre",
+      "link": "https://www.indigo.ca/pages/stores/287-indigo-toronto-eaton-centre",
       "featured": false
     }
   ],
