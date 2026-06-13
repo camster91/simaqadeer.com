@@ -43,7 +43,38 @@ read -r -d '' SIMA_BLOCK <<'EOF' || true
 
 # simaqadeer.com author site (managed by /root/simaqadeer-app/scripts/deploy.sh)
 simaqadeer.ashbi.ca, www.simaqadeer.ashbi.ca {
-  reverse_proxy 127.0.0.1:3019
+    encode gzip zstd
+    reverse_proxy 127.0.0.1:3019
+    @assets {
+        path *.css *.js *.svg *.png *.jpg *.jpeg *.webp *.otf *.woff2 *.ico
+    }
+    header @assets Cache-Control "public, max-age=31536000, immutable"
+    header {
+        # CSP matches the site's actual outbound destinations:
+        # - default 'self' so we deny anything we haven't thought about
+        # - script 'self' + 'unsafe-inline' + 'unsafe-eval' for the
+        #   React bundle's runtime (Vite output)
+        # - style 'self' + 'unsafe-inline' for Tailwind + Google Fonts CSS
+        # - font 'self' + Google Fonts (fonts.gstatic.com) + data URIs
+        # - img 'self' + data: + https: (book cover from any CDN if
+        #   Indigo/Amazon etc are added later; cover.jpg and og-image
+        #   are local but the press kit links go offsite)
+        # - connect 'self' for the /api/contact POST
+        # - frame-ancestors 'none' so the site can't be iframed
+        # - form-action 'self' so the contact form can only POST to us
+        # - object-src 'none' so no Flash/legacy plugins
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; base-uri 'self'"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+    log {
+        output file /data/simaqadeer.ashbi.ca.log {
+            roll_size 50mb
+            roll_keep 5
+        }
+    }
 }
 EOF
 
