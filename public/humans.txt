@@ -6,11 +6,12 @@ Server: simaqadeer-app — Node 22, Express 4.22 (https://github.com/camster91/s
 
 /* SITE */
 Last update: 2026/06/13
-Standards: HTML5, CSS3 (Tailwind), ES2022
+Standards: HTML5, CSS3 (Tailwind + brand-override.css), ES2022
 Components: React 19 (built static output)
 Components: GSAP for scroll-reveal animations
 Components: Google Fonts (Playfair Display, Source Serif 4, Caveat, Space Grotesk, IBM Plex Mono)
 Components: NORD font (self-hosted, subheadings)
+Components: Brand palette re-skin (warm coral-red + pink, see brand-override.css)
 
 /* THANKS */
 Northwestern University Press for taking the book.

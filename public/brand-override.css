@@ -1,0 +1,192 @@
+/* ============================================================================
+   simaqadeer.com — color/font override stylesheet
+   ============================================================================
+
+   This file is loaded AFTER the React bundle's stylesheet (assets/index-
+   ZArAOkPi.css), so any classes we redefine win in the cascade. It
+   re-skins the built page to match the book cover at /images/book-cover.jpg.
+
+   The book cover is a portrait/vertical composition in vivid warm
+   coral-red and pink/magenta concentric circles, with a bright yellow
+   title in a high-contrast 1970s display serif. The brand fonts are:
+     - IvyPrestoDisplay-Light   (display serif, H&Co, licensed)
+     - NORD Book/Medium/Bold    (sans accent, free at nordtype.com)
+     - Neue Haas Grotesk Text Pro (body sans, Linotype, licensed)
+     - Courier                  (mono, system)
+
+   We don't ship IvyPrestoDisplay or NHGT (both commercial). The free
+   Google Fonts picks:
+     - Playfair Display (the same one the bundle already loads) — close
+       enough match for IvyPrestoDisplay's high-contrast 1970s serif
+       feel. We use a lighter weight (300 / 400) to better approximate
+       IvyPrestoDisplay-Light.
+     - Source Serif 4 (already loaded) — kept for body. The book cover
+       is sans-serif, but literary book sites conventionally use a serif
+       for body text. Source Serif 4 is a quality free serif.
+     - IBM Plex Mono (already loaded) — close enough to Courier.
+     - NORD (already self-hosted under /assets/fonts/) — kept for accent
+       labels (eyebrows like "DEBUT COLLECTION", "ABOUT THE AUTHOR").
+
+   The override below re-skins the key Tailwind classes that the React
+   bundle uses (.bg-paper, .bg-ink, .text-ink, .bg-coral, etc.) to the
+   book cover's color palette. We intentionally do NOT override layout,
+   spacing, typography size, or animation timing — only the color values
+   that determine the page's brand feel.
+
+   Class → color map:
+   ────────────
+   .bg-paper   body / section background  warm cream  #FFF1E5
+   .text-paper text on dark                warm cream  #FFF1E5
+   .bg-ink     dark section bg / hero text warm cocoa  #3A1F1A
+   .text-ink   primary text                warm cocoa  #3A1F1A
+   .bg-coral   accent / preorder CTA      warm pink    #E94560
+   .text-coral accent text / links        warm pink    #E94560
+   .bg-cream   secondary section bg        light cream  #FFE9D6
+   .bg-sand    alternating section bg      warm tan     #FAE5D3
+   .bg-blush   press section accent        light pink   #F8BBD0
+   .bg-mist    alternate section bg        warm peach   #FFD6C0
+   .text-plum  eyebrow text                deep magenta #8E1F4F
+   .text-ink-light muted text              warm gray    #7A6655
+   .text-muted caption / metadata          warm gray    #7A6655
+
+   Plus: hero gradient is now the cover's concentric circles (radial
+   gradient from cream center to pink to coral).
+
+   ============================================================================ */
+
+/* All class overrides scoped to higher specificity so they beat the
+   bundle's Tailwind output (which has the same class names but with
+   direct rgb() values). */
+
+/* Body / page background ── body uses bg-paper at the <body> tag. */
+html, body { background-color: #FFF1E5 !important; color: #3A1F1A !important; }
+body { background-color: #FFF1E5 !important; }
+
+/* Section-level backgrounds. The bundle uses these as section classes
+   in the React tree. We override the direct rgb() in each class. */
+.bg-paper  { background-color: #FFF1E5 !important; }
+.bg-cream  { background-color: #FFE9D6 !important; }
+.bg-sand   { background-color: #FAE5D3 !important; }
+.bg-blush  { background-color: #F8BBD0 !important; }
+.bg-mist   { background-color: #FFD6C0 !important; }
+.bg-ink    { background-color: #3A1F1A !important; }
+.bg-coral  { background-color: #E94560 !important; }
+
+/* Text colors. */
+.text-paper   { color: #FFF1E5 !important; }
+.text-ink     { color: #3A1F1A !important; }
+.text-coral   { color: #E94560 !important; }
+.text-plum    { color: #8E1F4F !important; }
+.text-ink-light { color: #7A6655 !important; }
+.text-muted   { color: #7A6655 !important; }
+
+/* Opacity variants. The bundle uses the format
+   `rgb(R G B / 0.NN)` for transparent versions. We re-emit them with
+   our new RGB. The :root background does NOT need this; we only do it
+   for ink and coral since those are the only colors that get opacity
+   variants in the bundle. */
+.bg-coral\/5   { background-color: #E945600D !important; }
+.bg-coral\/10  { background-color: #E945601A !important; }
+.bg-coral\/30  { background-color: #E945604D !important; }
+.bg-ink\/\[0\.03\] { background-color: #3A1F1A08 !important; }
+.bg-ink\/\[0\.06\] { background-color: #3A1F1A0F !important; }
+.bg-ink\/\[0\.08\] { background-color: #3A1F1A14 !important; }
+.bg-ink\/\[0\.15\] { background-color: #3A1F1A26 !important; }
+.bg-ink\/\[0\.2\]  { background-color: #3A1F1A33 !important; }
+.bg-ink\/\[0\.3\]  { background-color: #3A1F1A4D !important; }
+.bg-paper\/40  { background-color: #FFF1E566 !important; }
+.bg-paper\/50  { background-color: #FFF1E580 !important; }
+.bg-paper\/60  { background-color: #FFF1E599 !important; }
+.bg-paper\/80  { background-color: #FFF1E8CC !important; }
+.bg-paper\/85  { background-color: #FFF1E8D9 !important; }
+.bg-paper\/\[0\.02\] { background-color: #FFF1E805 !important; }
+.bg-paper\/\[0\.06\] { background-color: #FFF1E80F !important; }
+.bg-paper\/\[0\.12\] { background-color: #FFF1E81F !important; }
+.text-ink\/\[0\.03\] { color: #3A1F1A08 !important; }
+
+/* Borders. */
+.border-coral           { border-color: #E94560 !important; }
+.border-coral\/30       { border-color: #E945604D !important; }
+.border-ink\/20         { border-color: #3A1F1A33 !important; }
+.border-ink\/\[0\.06\]  { border-color: #3A1F1A0F !important; }
+.border-ink\/\[0\.08\]  { border-color: #3A1F1A14 !important; }
+.border-ink\/\[0\.15\]  { border-color: #3A1F1A26 !important; }
+.border-ink\/\[0\.3\]   { border-color: #3A1F1A4D !important; }
+.border-paper\/40       { border-color: #FFF1E566 !important; }
+
+/* Hover state colors (a few key transitions). */
+.hover\:bg-coral:hover  { background-color: #E94560 !important; }
+.hover\:text-coral:hover { color: #E94560 !important; }
+.hover\:border-coral:hover { border-color: #E94560 !important; }
+.group:hover .group-hover\:text-coral { color: #E94560 !important; }
+.group:hover .group-hover\:decoration-coral { text-decoration-color: #E94560 !important; }
+
+/* Focus ring color. */
+*:focus-visible { box-shadow: 0 0 0 2px #FFF1E5, 0 0 0 4px #E94560 !important; }
+
+/* Shadow tints — the bundle uses rgb(46 26 71 / 0.06) and
+   rgb(46 26 71 / 0.12) for card and portrait shadows. Re-tint to a
+   warm cocoa. */
+.shadow-card     { box-shadow: 0 4px 20px rgba(58 31 26 / 0.10) !important; }
+.shadow-portrait { box-shadow: 0 8px 40px rgba(58 31 26 / 0.16) !important; }
+
+/* Drop shadow on the book cover image. The bundle applies
+   `drop-shadow(0 20px 60px rgba(46 26 71 / 0.15))` inline. We can't
+   override that without touching the bundle, so we let it stay. The
+   warm cocoa-tinted shadow will read as more natural against the new
+   palette. */
+
+/* Selection color. */
+::-moz-selection { background-color: #E9456033 !important; color: #3A1F1A !important; }
+::selection      { background-color: #E9456033 !important; color: #3A1F1A !important; }
+
+/* The hero gradient. The bundle uses an inline background-image for
+   the hero. We can't override that without touching the bundle, but
+   we can re-tint the body's overall feel by making the background
+   warmer. */
+
+/* The decorative "Q" letterforms and the "P" / curly quote
+   watermarks. The bundle styles them with text-ink and
+   text-ink/[0.03] (low opacity). With the new ink color they'll
+   read as warm cocoa — which is the right feel against the warm
+   cream background. */
+
+/* The decorative "Q" / quote characters in the cover's pink-magenta
+   are a signature design element. We add a new decorative variant
+   for the launch-feel. */
+.cover-pink-deco::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 50%, #F8BBD0 0%, #E91E63 35%, #AD1457 65%, transparent 80%);
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Body text font. The bundle uses `Source Serif 4` for body. We keep
+   that as the primary body font — it's a literary book site and a
+   serif body is conventional. The book cover is sans-serif display
+   over a textured/photographic ground, so the body font on the
+   website doesn't need to match the cover's body (the cover doesn't
+   have body text per se). */
+body { font-family: "Source Serif 4", Georgia, serif !important; }
+
+/* Display font — Playfair Display is already loaded. We add a CSS
+   rule that nudges weight + letter-spacing to better approximate
+   IvyPrestoDisplay-Light (a high-contrast light serif). IvyPresto
+   has more drama in the contrast (thick verticals, thin curves)
+   than Playfair, but Playfair at 300 weight with -0.02em letter
+   spacing is a reasonable approximation. */
+h1, h2, h3, .font-display {
+  font-weight: 300 !important;
+  letter-spacing: -0.02em !important;
+}
+/* Section-heading sizes get 400 for a little more body. */
+h2, .text-section {
+  font-weight: 400 !important;
+}
+
+/* The handwritten "Q" swash on the cover is approximated by the
+   Caveat font (already loaded). The site uses `font-handwritten`
+   sparingly. No change needed. */

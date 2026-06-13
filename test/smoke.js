@@ -177,6 +177,36 @@ async function test(name, fn) {
     assert.match(r.text, /Sima Qadeer/);
   });
 
+  await test('GET /brand-override.css (book-cover color/font override)', async () => {
+    // The brand-override.css is loaded after the bundle's CSS to
+    // re-skin the page to match the book cover (warm coral-red +
+    // pink + magenta). Without this, the built site uses the
+    // bundle's hardcoded deep-plum palette.
+    const r = await request('GET', '/brand-override.css');
+    assert.equal(r.status, 200);
+    assert.match(r.headers['content-type'] || '', /text\/css/);
+    // Sanity: the override must redefine the ink color (deep plum
+    // #2e1a47 is the bundle's default; the override uses a warm
+    // cocoa #3A1F1A to harmonize with the book cover).
+    assert.match(r.text, /#3A1F1A/i, 'override should define warm cocoa ink');
+    assert.match(r.text, /#E94560/i, 'override should define warm pink primary');
+    // It must include the right !important overrides to win the
+    // cascade against the bundle.
+    assert.match(r.text, /!important/, 'must use !important to beat bundle');
+  });
+
+  await test('GET / (links brand-override.css after the bundle stylesheet)', async () => {
+    // The override must come AFTER the bundle's CSS to win the
+    // cascade. If the order is wrong the override is silently no-op'd.
+    const r = await request('GET', '/', null, { Accept: 'text/html' });
+    const bundleIdx = r.text.indexOf('index-ZArAOkPi.css');
+    const overrideIdx = r.text.indexOf('brand-override.css');
+    assert.ok(bundleIdx > 0, 'bundle stylesheet not linked');
+    assert.ok(overrideIdx > 0, 'brand-override.css not linked');
+    assert.ok(overrideIdx > bundleIdx,
+      `override (${overrideIdx}) must come after bundle (${bundleIdx})`);
+  });
+
   await test('GET /apple-touch-icon.png (real 180x180 PNG)', async () => {
     // iOS Safari probes this on every visit. We now ship a real 180x180
     // PNG at this path, so it returns 200 with the right content-type
