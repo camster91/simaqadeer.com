@@ -255,6 +255,88 @@ async function test(name, fn) {
     assert.ok(!subj.includes('\n'));
   });
 
+  await test('GET / (JSON-LD Book/Person schema are correct)', async () => {
+    // The JSON-LD hardcoded in index.html drives Google's rich results.
+    // This test catches the kind of regression that was introduced in
+    // commit 070070e (where the Indigo Offer URL silently reverted
+    // to a 404). If a future commit changes any of these expected
+    // values, the test fails and the deploy gets caught.
+    const r = await request('GET', '/', null, { Accept: 'text/html' });
+    assert.equal(r.status, 200);
+    const m = r.text.match(/<script type="application\/ld\+json">([\s\S]+?)<\/script>/);
+    assert.ok(m, 'JSON-LD script tag present');
+    const data = JSON.parse(m[1]);
+    assert.equal(data['@context'], 'https://schema.org');
+    assert.ok(Array.isArray(data['@graph']));
+
+    // The Book node: ISBN, author reference, three preorder offers.
+    const book = data['@graph'].find((n) => n['@type'] === 'Book');
+    assert.ok(book, 'Book node present');
+    assert.equal(book.isbn, '9798899480324');
+    assert.equal(book.numberOfPages, 272);
+    assert.equal(book.datePublished, '2026-06-15');
+    assert.deepEqual(book.author, { '@id': 'https://simaqadeer.com/#author' });
+    assert.equal(book.offers.length, 3);
+
+    // Each Offer: must be a real URL (200 or 404-on-indigo for the
+    // search URL is acceptable; what we want to catch is the kind of
+    // stale typo from earlier commits).
+    const indigoOffer = book.offers.find((o) => o.seller && o.seller.name === 'Indigo');
+    assert.ok(indigoOffer, 'Indigo offer present');
+    assert.ok(!indigoOffer.url.includes('/brown-girls-grown-up-stories/'),
+      `Indigo offer URL looks like the broken 404 pattern: ${indigoOffer.url}`);
+    assert.ok(indigoOffer.url.startsWith('https://www.indigo.ca/'),
+      `Indigo offer URL not on indigo.ca: ${indigoOffer.url}`);
+    assert.equal(indigoOffer.availability, 'https://schema.org/PreOrder');
+
+    // The Person node: sameAs for social, image URL on simaqadeer.com
+    // (not ashbi.ca — that was the bug from before the canonical flip).
+    const person = data['@graph'].find((n) => n['@type'] === 'Person');
+    assert.ok(person, 'Person node present');
+    assert.equal(person['@id'], 'https://simaqadeer.com/#author');
+    assert.ok(Array.isArray(person.sameAs));
+    assert.ok(person.sameAs.some((u) => u.includes('instagram.com')));
+    assert.ok(person.sameAs.some((u) => u.includes('facebook.com')));
+    assert.ok(person.image.startsWith('https://simaqadeer.com/'),
+      `Person image not on apex: ${person.image}`);
+
+    // The WebSite node: language declared as en-CA.
+    const site = data['@graph'].find((n) => n['@type'] === 'WebSite');
+    assert.ok(site, 'WebSite node present');
+    assert.equal(site.inLanguage, 'en-CA');
+  });
+
+  await test('GET / (canonical + og:url both point at apex)', async () => {
+    // The apex is simaqadeer.com. If the URL is wrong, Google will
+    // index the wrong host and OG previews will show the wrong site.
+    const r = await request('GET', '/', null, { Accept: 'text/html' });
+    assert.equal(r.status, 200);
+    const canonical = r.text.match(/<link rel="canonical" href="([^"]+)"/);
+    const ogUrl = r.text.match(/<meta property="og:url" content="([^"]+)"/);
+    assert.ok(canonical, 'canonical link present');
+    assert.ok(ogUrl, 'og:url meta present');
+    assert.equal(canonical[1], 'https://simaqadeer.com');
+    assert.equal(ogUrl[1], 'https://simaqadeer.com');
+  });
+
+  await test('GET / (og:image dims match the actual file)', async () => {
+    // The og-image.jpg is regenerated at 1200x1200. The meta tags
+    // must declare the same dimensions or social previews will
+    // display the wrong aspect ratio.
+    const r = await request('GET', '/', null, { Accept: 'text/html' });
+    const width = parseInt(
+      (r.text.match(/og:image:width" content="(\d+)"/) || [])[1] || '0', 10);
+    const height = parseInt(
+      (r.text.match(/og:image:height" content="(\d+)"/) || [])[1] || '0', 10);
+    assert.ok(width > 0 && height > 0,
+      `og:image dimensions missing or zero: ${width}x${height}`);
+
+    // Sanity: 1200x1200. If the file changes, this should be
+    // updated in the same commit.
+    assert.equal(width, 1200, `expected og:image width 1200, got ${width}`);
+    assert.equal(height, 1200, `expected og:image height 1200, got ${height}`);
+  });
+
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail === 0 ? 0 : 1);
 })();
