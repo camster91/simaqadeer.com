@@ -88,15 +88,49 @@ app.post('/api/contact', (req, res) => {
 // the SPA fallback (index.html) handles routes that don't match a real file.
 app.use(express.static(STATIC_DIR, { extensions: ['html'], maxAge: '1h' }));
 
-// SPA fallback — any GET that didn't match a static file gets index.html.
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(STATIC_DIR, 'index.html'), (err) => {
-    if (err) {
-      // If the SPA fallback also fails (e.g. static dir missing), return 404
-      // with a clear message rather than the default Express HTML page.
-      res.status(404).send('Not found');
-    }
-  });
+// SPA fallback — any GET that didn't match a static file gets index.html,
+// BUT only when the request looks like a browser page load. Otherwise we'd
+// return HTML for /favicon.ico, /apple-touch-icon.png, /.well-known/*,
+// and any attacker probe like /admin or /wp-admin — every one of those
+// would get a 200 with HTML body, which is wrong on multiple levels:
+//
+//   - Browsers probing for favicon.ico get HTML instead of a 404, then
+//     ignore the response, but the next probe (chrome://net-export)
+//     shows a confusing "200 but rendered as HTML" entry.
+//   - iOS Safari probes /apple-touch-icon.png on every visit; returning
+//     HTML there can break the home-screen bookmark in some iOS builds.
+//   - Security researchers probing for /admin, /wp-admin, /phpmyadmin
+//     get a 200 (positive signal "this server has a thing at that path")
+//     when the answer should be 404 (no such resource).
+//   - /.well-known/* paths have well-known RFC-defined behavior; serving
+//     HTML for missing ones is at best noise and at worst breaks clients.
+//
+// Rule: serve the SPA only when:
+//   (a) the request path has no file extension (so e.g. /book and /about
+//       get the SPA, but /robots.txt and /favicon.ico don't), AND
+//   (b) the Accept header explicitly asks for text/html (so browsers
+//       hitting /book get the SPA, but CLI tools and security scanners
+//       sending Accept: */* — which node:http adds by default — get a
+//       real 404). An empty Accept header is also treated as a browser
+//       page load, since real browsers always send one.
+app.get('*', (req, res) => {
+  const accept = String(req.headers.accept || '');
+  const reqPath = req.path;
+  const looksLikeFile = /\.[a-z0-9]{1,6}$/i.test(reqPath);
+
+  // Browser page load: the Accept header explicitly asks for text/html.
+  // (Real browsers always send Accept, so an empty/missing Accept means
+  // a non-browser client that should get a clean 404.) Accept: */* is
+  // "give me anything" — also not a request for the SPA.
+  const wantsHtml = /\btext\/html\b/.test(accept);
+  if (!looksLikeFile && wantsHtml) {
+    return res.sendFile(path.join(STATIC_DIR, 'index.html'), (err) => {
+      if (err) res.status(404).send('Not found');
+    });
+  }
+
+  // Anything else: real 404. No HTML body, just a clean status.
+  res.status(404).type('text/plain').send('Not found');
 });
 
 const server = app.listen(PORT, () => {

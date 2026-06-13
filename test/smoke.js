@@ -8,11 +8,17 @@
 //   - GET  /                 → 200, HTML
 //   - GET  /content.json     → 200, JSON with .site.title
 //   - GET  /assets/index-*.js → 200, application/javascript
-//   - GET  /images/hero-bg.png → 200, image/png
+//   - GET  /images/hero-bg.webp → 200, image/webp
 //   - GET  /sitemap.xml      → 200, application/xml (or text/xml)
 //   - GET  /robots.txt       → 200
+//   - GET  /favicon.svg      → 200, image/svg+xml
 //   - GET  /healthz          → 200, JSON { status: "ok" }
-//   - GET  /nonexistent-route → 200 (SPA fallback to index.html)
+//   - GET  /book/some/deep    → 200 (SPA fallback to index.html)
+//   - GET  /favicon.ico       → 404, plain text (NOT the SPA HTML)
+//   - GET  /admin (no Accept) → 404 (attacker probe, no Accept header)
+//   - GET  /wp-admin (no Accept) → 404
+//   - GET  /apple-touch-icon.png → 404
+//   - GET  /admin (Accept: text/html) → 200 SPA fallback
 //   - POST /api/contact (valid)        → 200, { success: true, mailto }
 //   - POST /api/contact (no body)      → 400
 //   - POST /api/contact (bad email)    → 400
@@ -28,14 +34,18 @@ const BASE = `http://127.0.0.1:${PORT}`;
 let pass = 0;
 let fail = 0;
 
-function request(method, path, body) {
+function request(method, path, body, extraHeaders) {
   return new Promise((resolve, reject) => {
+    const headers = { ...(extraHeaders || {}) };
+    if (body && !headers['Content-Type'] && !headers['content-type']) {
+      headers['Content-Type'] = 'application/json';
+    }
     const opts = {
       method,
       host: '127.0.0.1',
       port: PORT,
       path,
-      headers: body ? { 'Content-Type': 'application/json' } : {},
+      headers,
     };
     const req = http.request(opts, (res) => {
       const chunks = [];
@@ -135,7 +145,58 @@ async function test(name, fn) {
   });
 
   await test('GET /nonexistent-route (SPA fallback)', async () => {
-    const r = await request('GET', '/book/some/deep/path');
+    const r = await request('GET', '/book/some/deep/path', null, { Accept: 'text/html' });
+    assert.equal(r.status, 200);
+    assert.match(r.text, /<title>.*Brown Girls.*<\/title>/);
+  });
+
+  await test('GET /favicon.ico (real 404, not SPA HTML)', async () => {
+    // Browsers probe for /favicon.ico. Without one, they expect a 404,
+    // not the SPA HTML pretending to be a favicon.
+    const r = await request('GET', '/favicon.ico');
+    assert.equal(r.status, 404);
+    assert.ok(!/<!doctype/i.test(r.text), 'should not be HTML');
+  });
+
+  await test('GET /admin (real 404 with no Accept header)', async () => {
+    // Attacker probe — no Accept header means it is not a browser page
+    // load. Real 404, not the SPA HTML.
+    const r = await request('GET', '/admin', null, {});
+    assert.equal(r.status, 404);
+  });
+
+  await test('GET /wp-admin (real 404)', async () => {
+    const r = await request('GET', '/wp-admin', null, {});
+    assert.equal(r.status, 404);
+  });
+
+  await test('GET /humans.txt (real file, plain text)', async () => {
+    const r = await request('GET', '/humans.txt');
+    assert.equal(r.status, 200);
+    assert.match(r.headers['content-type'] || '', /text\/plain/);
+    assert.match(r.text, /Sima Qadeer/);
+  });
+
+  await test('GET /apple-touch-icon.png (real 180x180 PNG)', async () => {
+    // iOS Safari probes this on every visit. We now ship a real 180x180
+    // PNG at this path, so it returns 200 with the right content-type
+    // and a valid PNG signature. iOS uses this for the home-screen
+    // bookmark.
+    const r = await request('GET', '/apple-touch-icon.png');
+    assert.equal(r.status, 200);
+    assert.match(r.headers['content-type'] || '', /image\/png/);
+    // PNG magic: 89 50 4E 47
+    assert.equal(r.body[0], 0x89);
+    assert.equal(r.body[1], 0x50);
+    assert.equal(r.body[2], 0x4e);
+    assert.equal(r.body[3], 0x47);
+  });
+
+  await test('GET /admin (SPA fallback when Accept: text/html)', async () => {
+    // A browser (with Accept: text/html) hitting /admin still gets the
+    // SPA — a user might be testing a typo. But the no-Accept path
+    // returned 404 above.
+    const r = await request('GET', '/admin', null, { Accept: 'text/html' });
     assert.equal(r.status, 200);
     assert.match(r.text, /<title>.*Brown Girls.*<\/title>/);
   });

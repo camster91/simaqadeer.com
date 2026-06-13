@@ -90,14 +90,59 @@ For container liveness probes.
 ├── package.json              # express only — no client build
 ├── server.js                 # Express app (static + /api/contact)
 ├── test/
-│   └── smoke.js              # 14-test suite, node:assert
+│   └── smoke.js              # 20-test suite, node:assert
+├── scripts/
+│   └── deploy.sh             # cron-based auto-deploy on the VPS
 └── public/                   # built static site (copied into image)
     ├── index.html            # entry, with mailto bridge shim
     ├── content.json          # all site copy + structured data
     ├── 404.html
     ├── favicon.svg
+    ├── apple-touch-icon.png  # 180x180 PNG, iOS home-screen bookmark
+    ├── humans.txt            # literary-site tradition
     ├── sitemap.xml
     ├── robots.txt
     ├── assets/               # React bundle, CSS, fonts
     └── images/               # book cover, portrait, hero, og-image
+```
+
+## SPA fallback rules
+
+The Express server has a `GET *` catch-all that serves `index.html`
+for browser page loads and `404 plain text` for everything else. The
+distinction is important — without it, a request for `/favicon.ico`
+or `/admin` from a CLI tool or security scanner would get a 200 with
+the SPA HTML body, which lies about what's at that path.
+
+The fallback fires when **both** are true:
+- The request path has no file extension (so `/book` gets the SPA,
+  but `/favicon.ico` does not)
+- The `Accept` header explicitly contains `text/html` (so browsers
+  get the SPA, but `Accept: */*` and missing-`Accept` requests
+  from CLI tools and scanners get a clean 404)
+
+A request with `Accept: text/html` to `/admin` still gets the SPA
+— a user might be testing a typo or pasting a stale link. But the
+no-`Accept` and `Accept: */*` paths return 404 plain text.
+
+## Deploy
+
+The repo is deployed via a cron-based auto-deploy hook
+(`scripts/deploy.sh`) running on the VPS via crond, polling GitHub
+every 5 minutes. After pushing to main on GitHub, the next cron
+tick (within 5 minutes) detects the new SHA, pulls, rebuilds the
+Docker image, swaps the container, and verifies the new
+`/healthz` returns OK.
+
+To force an immediate deploy without waiting 5 minutes, SSH in
+and run the script directly:
+
+```bash
+ssh hostinger '/root/simaqadeer-app/scripts/deploy.sh'
+```
+
+Or from the local Mac (if the `hostinger` SSH alias is configured):
+
+```bash
+npm run deploy
 ```

@@ -1,0 +1,18 @@
+/* TEAM */
+Author: Sima Qadeer (simaqadeerAuthor@gmail.com)
+Publisher: Curbstone Books / Northwestern University Press
+Designer / Developer: Ashbi Design (cameron@ashbi.ca)
+Server: simaqadeer-app — Node 22, Express 4.22 (https://github.com/camster91/simaqadeer.com)
+
+/* SITE */
+Last update: 2026/06/12
+Standards: HTML5, CSS3 (Tailwind), ES2022
+Components: React 19 (built static output)
+Components: GSAP for scroll-reveal animations
+Components: Google Fonts (Playfair Display, Source Serif 4, Caveat, Space Grotesk, IBM Plex Mono)
+Components: NORD font (self-hosted, subheadings)
+
+/* THANKS */
+Northwestern University Press for taking the book.
+The two booksellers in *Brown Girls, Grown Up* are real people who
+agreed to be in a story collection; thank you for the trust.

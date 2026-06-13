@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/smoke.js"
+    "test": "node test/smoke.js",
+    "deploy": "ssh hostinger 'bash -lc \"cd /root/simaqadeer-app && git pull --ff-only && /root/simaqadeer-app/scripts/deploy.sh\"'"
   },
   "engines": {
     "node": ">=20"
