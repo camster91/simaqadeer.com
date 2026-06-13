@@ -34,10 +34,15 @@ LOG_PREFIX="[$(date -u +%Y-%m-%dT%H:%M:%SZ)]"
 
 # The route block this script defends. Single source of truth — if you
 # need to change the route, change it here and on every VPS deploy.
+# Currently scoped to the Ashbi subdomain only; the apex
+# simaqadeer.com is dormant until Cam flips the NameCheap A record
+# to 187.77.26.99 — at that point, add `simaqadeer.com,
+# www.simaqadeer.com,` to the host list and the cert + routing come
+# up automatically.
 read -r -d '' SIMA_BLOCK <<'EOF' || true
 
 # simaqadeer.com author site (managed by /root/simaqadeer-app/scripts/deploy.sh)
-simaqadeer.com, www.simaqadeer.com, simaqadeer.ashbi.ca, www.simaqadeer.ashbi.ca {
+simaqadeer.ashbi.ca, www.simaqadeer.ashbi.ca {
   reverse_proxy 127.0.0.1:3019
 }
 EOF

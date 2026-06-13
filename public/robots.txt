@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://simaqadeer.com/sitemap.xml
+Sitemap: https://simaqadeer.ashbi.ca/sitemap.xml

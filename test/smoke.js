@@ -275,7 +275,7 @@ async function test(name, fn) {
     assert.equal(book.isbn, '9798899480324');
     assert.equal(book.numberOfPages, 272);
     assert.equal(book.datePublished, '2026-06-15');
-    assert.deepEqual(book.author, { '@id': 'https://simaqadeer.com/#author' });
+    assert.deepEqual(book.author, { '@id': 'https://simaqadeer.ashbi.ca/#author' });
     assert.equal(book.offers.length, 3);
 
     // Each Offer: must be a real URL (200 or 404-on-indigo for the
@@ -289,15 +289,15 @@ async function test(name, fn) {
       `Indigo offer URL not on indigo.ca: ${indigoOffer.url}`);
     assert.equal(indigoOffer.availability, 'https://schema.org/PreOrder');
 
-    // The Person node: sameAs for social, image URL on simaqadeer.com
-    // (not ashbi.ca — that was the bug from before the canonical flip).
+    // The Person node: sameAs for social, image URL on simaqadeer.ashbi.ca
+    // (not the apex simaqadeer.com — that may or may not be live).
     const person = data['@graph'].find((n) => n['@type'] === 'Person');
     assert.ok(person, 'Person node present');
-    assert.equal(person['@id'], 'https://simaqadeer.com/#author');
+    assert.equal(person['@id'], 'https://simaqadeer.ashbi.ca/#author');
     assert.ok(Array.isArray(person.sameAs));
     assert.ok(person.sameAs.some((u) => u.includes('instagram.com')));
     assert.ok(person.sameAs.some((u) => u.includes('facebook.com')));
-    assert.ok(person.image.startsWith('https://simaqadeer.com/'),
+    assert.ok(person.image.startsWith('https://simaqadeer.ashbi.ca/'),
       `Person image not on apex: ${person.image}`);
 
     // The WebSite node: language declared as en-CA.
@@ -307,16 +307,18 @@ async function test(name, fn) {
   });
 
   await test('GET / (canonical + og:url both point at apex)', async () => {
-    // The apex is simaqadeer.com. If the URL is wrong, Google will
-    // index the wrong host and OG previews will show the wrong site.
+    // The live URL is simaqadeer.ashbi.ca for now (apex simaqadeer.com
+    // still resolves to the legacy Hostinger PHP placeholder until
+    // Cam flips the NameCheap A record). All canonical + OG references
+    // must match what users actually see in the address bar.
     const r = await request('GET', '/', null, { Accept: 'text/html' });
     assert.equal(r.status, 200);
     const canonical = r.text.match(/<link rel="canonical" href="([^"]+)"/);
     const ogUrl = r.text.match(/<meta property="og:url" content="([^"]+)"/);
     assert.ok(canonical, 'canonical link present');
     assert.ok(ogUrl, 'og:url meta present');
-    assert.equal(canonical[1], 'https://simaqadeer.com');
-    assert.equal(ogUrl[1], 'https://simaqadeer.com');
+    assert.equal(canonical[1], 'https://simaqadeer.ashbi.ca');
+    assert.equal(ogUrl[1], 'https://simaqadeer.ashbi.ca');
   });
 
   await test('GET / (og:image dims match the actual file)', async () => {

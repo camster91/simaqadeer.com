@@ -5,7 +5,7 @@ Designer / Developer: Ashbi Design (cameron@ashbi.ca)
 Server: simaqadeer-app — Node 22, Express 4.22 (https://github.com/camster91/simaqadeer.com)
 
 /* SITE */
-Last update: 2026/06/12
+Last update: 2026/06/13
 Standards: HTML5, CSS3 (Tailwind), ES2022
 Components: React 19 (built static output)
 Components: GSAP for scroll-reveal animations
