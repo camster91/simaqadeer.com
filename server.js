@@ -43,10 +43,15 @@ app.get('/healthz', (_req, res) => {
 // container dependency-free and avoids SMTP credentials in env vars.
 app.post('/api/contact', (req, res) => {
   const body = req.body || {};
-  const name = String(body.name || '').trim();
-  const email = String(body.email || '').trim();
-  const subject = String(body.subject || '').trim();
-  const message = String(body.message || '').trim();
+  // typeof guards before String(): `String([...])` and `String({x:1})` would
+  // coerce to "f,u,c,k" / "[object Object]" and pass the length cap, getting
+  // mailed verbatim. Also `body.name || ''` treats the string "0" as empty
+  // (falsy) — a user named "0" would be rejected. typeof catches both.
+  const field = (v) => (typeof v === 'string' ? v : '').trim();
+  const name = field(body.name);
+  const email = field(body.email);
+  const subject = field(body.subject);
+  const message = field(body.message);
 
   // Validation — keep it tight. The bundle's form has client-side required
   // attributes, but a malicious client can POST anything.
