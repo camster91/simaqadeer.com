@@ -96,10 +96,12 @@
       server's returned mailto: URL — it only checks `success: true`.
 
       This shim wraps window.fetch: when a /api/contact POST comes back with
-      a { success: true, mailto: "..." } payload, it opens the mailto so the
-      user's mail client fires. The bundle still sees success and shows the
-      Thank you state. This is a one-line wrapper that keeps the contact
-      form functional without rebuilding the bundle.
+      a { success: true, mailto: "..." } payload, it opens the mailto in a
+      new tab so the user's mail client fires without navigating away from
+      the form. The bundle still sees success and shows the Thank you state
+      in the original tab. If the new-tab mailto is blocked (popup blocker,
+      no mail client registered), the Thank you state still renders and the
+      user can retry — the form is never lost.
     -->
     <script>
       (function () {
@@ -113,14 +115,16 @@
             return p;
           }
           // Clone the response so the bundle can still read it; then open
-          // the mailto on the side. If mailto fails (no mail client, popup
-          // blocked) the bundle still completes its success path.
+          // the mailto in a new tab so the original form page survives.
+          // Using _blank instead of _self means a missing mail client or
+          // a popup blocker does not lose the user's form state — the
+          // Thank you state still renders in this tab.
           return p.then(function (res) {
             try {
               var cloned = res.clone();
               cloned.json().then(function (j) {
                 if (j && j.success && j.mailto) {
-                  window.open(j.mailto, '_self');
+                  window.open(j.mailto, '_blank');
                 }
               }).catch(function () { /* not JSON — ignore */ });
             } catch (e) { /* defensive: never let the shim break the fetch */ }
