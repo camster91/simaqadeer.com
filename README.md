@@ -128,11 +128,19 @@ no-`Accept` and `Accept: */*` paths return 404 plain text.
 ## Deploy
 
 The repo is deployed via a cron-based auto-deploy hook
-(`scripts/deploy.sh`) running on the VPS via crond, polling GitHub
-every 5 minutes. After pushing to main on GitHub, the next cron
+(`/etc/cron.d/simaqadeer-deploy`) running on the VPS via crond, polling
+GitHub every 5 minutes. After pushing to main on GitHub, the next cron
 tick (within 5 minutes) detects the new SHA, pulls, rebuilds the
 Docker image, swaps the container, and verifies the new
 `/healthz` returns OK.
+
+Traefik (running in a Docker container on the VPS) is the edge reverse
+proxy. Sima routes live in `/opt/traefik/dynamic/routers.yml` with the
+`simaqadeer-csp` (CSP + HSTS + X-Frame-Options + X-Content-Type-Options
++ Referrer-Policy) and `simaqadeer-assets` (asset Cache-Control)
+middlewares. The deploy script does NOT touch the Traefik config — the
+Traefik dynamic config is managed by `/opt/vps/bin/render.py` from
+`/opt/vps/manifest/sites.yaml`, separately.
 
 To force an immediate deploy without waiting 5 minutes, SSH in
 and run the script directly:

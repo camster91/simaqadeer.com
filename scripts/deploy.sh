@@ -24,8 +24,8 @@
 #   last_sha   — last SHA we successfully built and ran
 #   build_pid  — PID of a running build, or empty
 #
-# Cron entry (run `crontab -e` on the VPS):
-#   */5 * * * * /root/simaqadeer-app/scripts/deploy.sh >> /var/log/simaqadeer-deploy.log 2>&1
+# Cron entry at /etc/cron.d/simaqadeer-deploy:
+#   */5 * * * * root /root/simaqadeer-app/scripts/deploy.sh >> /var/log/simaqadeer-deploy.log 2>&1
 #
 # To force a rebuild without a code change, bump /tmp/simaqadeer-deploy-trigger.
 
