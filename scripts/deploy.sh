@@ -111,16 +111,33 @@ if [ -f "$CADDYFILE" ] && ! grep -q "simaqadeer\.ashbi\.ca" "$CADDYFILE"; then
 fi
 
 # ----- Step 2: check for a new SHA on main -----
-remote_sha=$(curl -sS --max-time 10 \
+# Capture HTTP status separately from the JSON parse — GitHub's unauthenticated
+# /repos/.../commits endpoint is rate-limited to 60 req/hr. A 403/429 here
+# used to fail silently (the python3 parse errored, `|| true` swallowed it,
+# `remote_sha` became empty, the script logged "could not reach GitHub" and
+# exited 0). Now we check the status first and exit non-zero on rate-limit
+# so cron + log readers see the failure.
+remote_body=$(curl -sS --max-time 10 -w '\n%{http_code}' \
   -H 'Accept: application/vnd.github+json' \
-  https://api.github.com/repos/camster91/simaqadeer.com/commits/main \
-  | python3 -c 'import json,sys; print(json.load(sys.stdin)["sha"])' 2>/dev/null || true)
+  https://api.github.com/repos/camster91/simaqadeer.com/commits/main 2>/dev/null || true)
+remote_status=$(echo "$remote_body" | tail -n 1)
+remote_json=$(echo "$remote_body" | sed '$d')
+remote_sha=$(echo "$remote_json" | python3 -c 'import json,sys
+try:
+    print(json.load(sys.stdin)["sha"])
+except Exception:
+    pass' 2>/dev/null || true)
 
 if [ -z "${remote_sha:-}" ]; then
-  echo "$LOG_PREFIX could not reach GitHub, leaving $last_sha running"
+  echo "$LOG_PREFIX could not fetch remote SHA (HTTP $remote_status), leaving ${last_sha:-none} running"
   # Still restart Caddy if we changed the Caddyfile above.
   if [ "$caddyfile_changed" -eq 1 ]; then
     systemctl restart caddy && echo "$LOG_PREFIX Caddy restarted"
+  fi
+  # Non-zero exit on rate-limit so the cron log shows the failure distinctly.
+  if [ "${remote_status:-}" = "403" ] || [ "${remote_status:-}" = "429" ]; then
+    echo "$LOG_PREFIX GitHub rate-limited — back off for an hour, do not retry"
+    exit 1
   fi
   exit 0
 fi
@@ -135,6 +152,16 @@ if [ "$remote_sha" != "$last_sha" ]; then
   cd "$APP_DIR"
   git fetch origin main --quiet
   git reset --hard origin/main >/dev/null
+
+  # Verify the reset actually landed — `git reset --hard` can silently no-op
+  # if the remote ref hasn't moved (rare, but worth catching so a broken
+  # deploy hook doesn't keep running old code forever).
+  actual_sha=$(git rev-parse HEAD)
+  if [ "$actual_sha" != "$remote_sha" ]; then
+    echo "$LOG_PREFIX reset landed at $actual_sha, expected $remote_sha — bailing, leaving old container running"
+    sed -i "s/^build_pid=.*/build_pid=/" "$STATE_FILE"
+    exit 1
+  fi
 
   docker build -t "$IMAGE_NAME" . >/tmp/simaqadeer-build.log 2>&1
   build_status=$?
