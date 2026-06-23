@@ -7,10 +7,17 @@
 # on the same port with --restart=unless-stopped; zero-downtime is not the
 # goal here (a 5-30s blip on a static book site is fine).
 #
-# ALSO: the Caddyfile at /opt/caddy/Caddyfile is shared across the Ashbi
-# fleet. Other agents/Cam are actively editing it. This script also
-# ensures the simaqadeer route is present (idempotent — re-adds if a
-# fleet-wide edit dropped it) and restarts Caddy if the file changed.
+# Traefik (Docker container, mounts /opt/traefik/{traefik.yml,dynamic} from
+# the host) is the edge reverse proxy. Sima routes live in
+# /opt/traefik/dynamic/routers.yml with the simaqadeer-csp middleware
+# (CSP + HSTS + X-Frame-Options + X-Content-Type-Options + Referrer-Policy)
+# and the simaqadeer-assets middleware (asset Cache-Control). This hook
+# does NOT touch the Traefik config — that's managed by render.py from
+# /opt/vps/manifest/sites.yaml, separately.
+#
+# The prior version of this script defended a Caddy site block at
+# /opt/caddy/Caddyfile. Caddy is masked on the VPS; Traefik serves :80
+# and :443. The Caddy code was removed 2026-06-23.
 #
 # Idempotent: if a deploy is already in flight, the next tick exits fast.
 # State stored in /root/simaqadeer-app/.deploy-state:
@@ -29,62 +36,7 @@ IMAGE_NAME="simaqadeer-app:local"
 CONTAINER_NAME="simaqadeer-app"
 STATE_FILE="$APP_DIR/.deploy-state"
 LOCK_FILE="/var/lock/simaqadeer-deploy.lock"
-CADDYFILE="/opt/caddy/Caddyfile"
 LOG_PREFIX="[$(date -u +%Y-%m-%dT%H:%M:%SZ)]"
-
-# The route block this script defends. Single source of truth — if you
-# need to change the route, change it here and on every VPS deploy.
-# Currently scoped to the Ashbi subdomain only; the apex
-# simaqadeer.com is dormant until Cam flips the NameCheap A record
-# to 187.77.26.99 — at that point, add `simaqadeer.com,
-# www.simaqadeer.com,` to the host list and the cert + routing come
-# up automatically.
-read -r -d '' SIMA_BLOCK <<'EOF' || true
-
-# simaqadeer.com author site (managed by /root/simaqadeer-app/scripts/deploy.sh)
-simaqadeer.ashbi.ca, www.simaqadeer.ashbi.ca {
-    encode gzip zstd
-    reverse_proxy 127.0.0.1:3019
-    @assets {
-        path *.css *.js *.svg *.png *.jpg *.jpeg *.webp *.otf *.woff2 *.ico
-    }
-    header @assets Cache-Control "public, max-age=31536000, immutable"
-    header {
-        # CSP matches the site's actual outbound destinations:
-        # - default 'self' so we deny anything we haven't thought about
-        # - script 'self' + 'unsafe-inline' + 'unsafe-eval' for the
-        #   React bundle's runtime (Vite output)
-        # - style 'self' + 'unsafe-inline' for Tailwind + Google Fonts CSS
-        # - font 'self' + Google Fonts (fonts.gstatic.com) + data URIs
-        # - img 'self' + data: + https: (book cover from any CDN if
-        #   Indigo/Amazon etc are added later; cover.jpg and og-image
-        #   are local but the press kit links go offsite)
-        # - connect-src 'self' for the /api/contact POST
-        #   NOTE: 'self' only. Any future analytics, error reporting, or
-        #   external API call (Sentry, Plausible, a server-side fetch
-        #   helper, etc.) will silently fail — the browser console will
-        #   show a CSP violation, NOT a layout or form bug, so it will
-        #   surface as "the form doesn't work" three months from now.
-        #   If you add an outbound call, update this directive to the
-        #   allowlist (e.g. connect-src 'self' https://plausible.io).
-        #   Keeping it at 'self' until a real outbound call is needed.
-        # - frame-ancestors 'none' so the site can't be iframed
-        # - form-action 'self' so the contact form can only POST to us
-        # - object-src 'none' so no Flash/legacy plugins
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; base-uri 'self'"
-        Strict-Transport-Security "max-age=31536000; includeSubDomains"
-        X-Frame-Options "SAMEORIGIN"
-        X-Content-Type-Options "nosniff"
-        Referrer-Policy "strict-origin-when-cross-origin"
-    }
-    log {
-        output file /data/simaqadeer.ashbi.ca.log {
-            roll_size 50mb
-            roll_keep 5
-        }
-    }
-}
-EOF
 
 # Ensure state dir + file exist.
 mkdir -p "$(dirname "$STATE_FILE")"
@@ -107,18 +59,7 @@ if ! flock -n 9; then
   exit 0
 fi
 
-# ----- Step 1: ensure the Caddy route is present -----
-# A fleet-wide Caddyfile edit (e.g. another agent adding a new block)
-# can drop our route. We re-add it idempotently on every tick.
-caddyfile_changed=0
-if [ -f "$CADDYFILE" ] && ! grep -q "simaqadeer\.ashbi\.ca" "$CADDYFILE"; then
-  echo "$LOG_PREFIX Caddyfile missing sima block, re-adding"
-  cp "$CADDYFILE" "${CADDYFILE}.bak.$(date -u +%Y%m%d_%H%M%S)"
-  printf '\n%s\n' "$SIMA_BLOCK" >> "$CADDYFILE"
-  caddyfile_changed=1
-fi
-
-# ----- Step 2: check for a new SHA on main -----
+# ----- Step 1: check for a new SHA on main -----
 # Capture HTTP status separately from the JSON parse — GitHub's unauthenticated
 # /repos/.../commits endpoint is rate-limited to 60 req/hr. A 403/429 here
 # used to fail silently (the python3 parse errored, `|| true` swallowed it,
@@ -138,10 +79,6 @@ except Exception:
 
 if [ -z "${remote_sha:-}" ]; then
   echo "$LOG_PREFIX could not fetch remote SHA (HTTP $remote_status), leaving ${last_sha:-none} running"
-  # Still restart Caddy if we changed the Caddyfile above.
-  if [ "$caddyfile_changed" -eq 1 ]; then
-    systemctl restart caddy && echo "$LOG_PREFIX Caddy restarted"
-  fi
   # Non-zero exit on rate-limit so the cron log shows the failure distinctly.
   if [ "${remote_status:-}" = "403" ] || [ "${remote_status:-}" = "429" ]; then
     echo "$LOG_PREFIX GitHub rate-limited — back off for an hour, do not retry"
@@ -150,7 +87,7 @@ if [ -z "${remote_sha:-}" ]; then
   exit 0
 fi
 
-# ----- Step 3: rebuild + swap if SHA changed -----
+# ----- Step 2: rebuild + swap if SHA changed -----
 if [ "$remote_sha" != "$last_sha" ]; then
   echo "$LOG_PREFIX new SHA $remote_sha (was ${last_sha:-none}), deploying"
 
@@ -212,9 +149,4 @@ if [ "$remote_sha" != "$last_sha" ]; then
   docker image prune -f --filter "label!=keep" >/dev/null 2>&1 || true
 
   echo "$LOG_PREFIX deploy done, serving $remote_sha"
-fi
-
-# ----- Step 4: restart Caddy if the Caddyfile was changed (always, not just on deploy) -----
-if [ "$caddyfile_changed" -eq 1 ]; then
-  systemctl restart caddy && echo "$LOG_PREFIX Caddy restarted (Caddyfile was missing sima block)"
 fi
