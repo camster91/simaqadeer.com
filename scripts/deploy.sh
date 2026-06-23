@@ -59,7 +59,15 @@ simaqadeer.ashbi.ca, www.simaqadeer.ashbi.ca {
         # - img 'self' + data: + https: (book cover from any CDN if
         #   Indigo/Amazon etc are added later; cover.jpg and og-image
         #   are local but the press kit links go offsite)
-        # - connect 'self' for the /api/contact POST
+        # - connect-src 'self' for the /api/contact POST
+        #   NOTE: 'self' only. Any future analytics, error reporting, or
+        #   external API call (Sentry, Plausible, a server-side fetch
+        #   helper, etc.) will silently fail — the browser console will
+        #   show a CSP violation, NOT a layout or form bug, so it will
+        #   surface as "the form doesn't work" three months from now.
+        #   If you add an outbound call, update this directive to the
+        #   allowlist (e.g. connect-src 'self' https://plausible.io).
+        #   Keeping it at 'self' until a real outbound call is needed.
         # - frame-ancestors 'none' so the site can't be iframed
         # - form-action 'self' so the contact form can only POST to us
         # - object-src 'none' so no Flash/legacy plugins
