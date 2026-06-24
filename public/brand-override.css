@@ -190,3 +190,97 @@ h2, .text-section {
 /* The handwritten "Q" swash on the cover is approximated by the
    Caveat font (already loaded). The site uses `font-handwritten`
    sparingly. No change needed. */
+
+/* ============================================================================
+   Inline link styling + touch targets
+   ----------------------------------------------------------------------------
+   QA pass (2026-06-23) found that:
+     - Book Signing links in the Events section were 24px tall with no
+       underline or other visual differentiation from plain text.
+     - Read more links in the Press section were 21px tall, same issue.
+     - Press kit mailto links (Request: Author Photo, etc.) were
+       24px tall.
+   All three are <32px tap targets on mobile (Apple HIG/Material
+   recommend 44px for primary actions, 32px for inline text links).
+
+   Fix: add an underline, a small "external link" cue, and pad each
+   link to 32px+ vertical tap area without changing the surrounding
+   layout. The underline uses `currentColor` so the existing
+   hover:text-coral transition re-tints it correctly.               */
+
+.event-row a[target="_blank"] {
+  /* "Book Signing" links — already flex-children of a gap-2 parent.
+     Add vertical padding so the tap target reaches 32px without
+     changing the row's outer height noticeably. */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 6px 0;
+  min-height: 32px;
+  text-decoration: underline;
+  text-decoration-color: rgba(58 31 26 / 0.30);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 200ms ease, color 200ms ease;
+}
+.event-row a[target="_blank"]:hover,
+.event-row a[target="_blank"]:focus-visible {
+  text-decoration-color: currentColor;
+}
+/* Small "↗" cue for external links in the event row. Pure CSS, no
+   extra DOM — uses ::after on the inline-flex link. */
+.event-row a[target="_blank"]::after {
+  content: "↗";
+  font-size: 0.85em;
+  line-height: 1;
+  opacity: 0.6;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.event-row a[target="_blank"]:hover::after,
+.event-row a[target="_blank"]:focus-visible::after {
+  opacity: 1;
+  transform: translate(1px, -1px);
+}
+
+.border-coral.pl-6 a[target="_blank"] {
+  /* "Read more" links inside Press items. Same treatment. */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 6px 0;
+  min-height: 32px;
+  text-decoration: underline;
+  text-decoration-color: rgba(58 31 26 / 0.30);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 200ms ease, color 200ms ease;
+}
+.border-coral.pl-6 a[target="_blank"]:hover,
+.border-coral.pl-6 a[target="_blank"]:focus-visible {
+  text-decoration-color: currentColor;
+}
+.border-coral.pl-6 a[target="_blank"]::after {
+  content: "↗";
+  font-size: 0.85em;
+  line-height: 1;
+  opacity: 0.6;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.border-coral.pl-6 a[target="_blank"]:hover::after,
+.border-coral.pl-6 a[target="_blank"]:focus-visible::after {
+  opacity: 1;
+  transform: translate(1px, -1px);
+}
+
+/* Press kit mailto links — "Request: Author Photo" etc. These are
+   longer labels and span full-width on mobile. Add vertical padding
+   + min-height so the 16px font / no-padding default doesn't leave
+   them at ~24px tap target. */
+a[href*="Press%20kit%20request"],
+a[href^="mailto:"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 8px 0;
+  min-height: 32px;
+}
