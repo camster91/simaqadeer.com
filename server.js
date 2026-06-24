@@ -27,6 +27,30 @@ const app = express();
 app.disable('x-powered-by');
 app.use(express.json({ limit: '16kb' }));
 
+// Body-parser errors on /api/* return JSON instead of Express's
+// default HTML error page. The front-end fetch wrapper always sets
+// Accept defaults, so getting HTML back would force the success
+// path's `.json()` to throw and the user would see no error
+// message at all. With JSON, the front-end's `M.error || "Submission
+// failed"` shows up in the form's red error banner.
+//
+// Triggered by:
+//   - Invalid JSON body:  SyntaxError → 400 {"success":false,"error":"invalid JSON"}
+//   - Body too large:    entity.too.large → 413 {"success":false,"error":"payload too large"}
+//   - Other parser errs: 400 {"success":false,"error":"malformed request"}
+app.use('/api', (err, _req, res, next) => {
+    if (err && err.type === 'entity.parse.failed') {
+        return res.status(400).json({ success: false, error: 'invalid JSON' });
+    }
+    if (err && err.type === 'entity.too.large') {
+        return res.status(413).json({ success: false, error: 'payload too large' });
+    }
+    if (err && err.type && err.type.startsWith('entity.')) {
+        return res.status(400).json({ success: false, error: 'malformed request' });
+    }
+    next(err);
+});
+
 // Health probe — used by docker-compose / k8s liveness checks.
 app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });

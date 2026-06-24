@@ -24,6 +24,8 @@
 //   - POST /api/contact (bad email)    → 400
 //   - POST /api/contact (huge message) → 400
 //   - POST /api/contact (control chars in subject) → 200, control chars stripped
+//   - POST /api/contact (invalid JSON) → 400 JSON, not HTML
+//   - POST /api/contact (payload too large) → 413 JSON, not HTML
 
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -40,6 +42,14 @@ function request(method, path, body, extraHeaders) {
     if (body && !headers['Content-Type'] && !headers['content-type']) {
       headers['Content-Type'] = 'application/json';
     }
+    // Always set Content-Length when sending a JSON body. Without it,
+    // node falls back to Transfer-Encoding: chunked, which Express's
+    // express.json() body parser handles inconsistently with the 16kb
+    // limit (can hang on the route handler waiting for more chunks).
+    // Setting Content-Length explicitly makes the request well-defined
+    // for both the server and the test.
+    const bodyStr = body ? JSON.stringify(body) : null;
+    if (bodyStr) headers['Content-Length'] = Buffer.byteLength(bodyStr);
     const opts = {
       method,
       host: '127.0.0.1',
@@ -65,7 +75,7 @@ function request(method, path, body, extraHeaders) {
       });
     });
     req.on('error', reject);
-    if (body) req.write(JSON.stringify(body));
+    if (bodyStr) req.write(bodyStr);
     req.end();
   });
 }
@@ -283,6 +293,62 @@ async function test(name, fn) {
     const subj = url.searchParams.get('subject');
     assert.ok(!subj.includes('\r'));
     assert.ok(!subj.includes('\n'));
+  });
+
+  await test('POST /api/contact (invalid JSON → 400 JSON, not HTML)', async () => {
+    // Build a raw POST via the http.request helper but with a non-JSON body.
+    // Without the body-parser error middleware, Express returns a
+    // text/html "Bad Request" page; with it, we get JSON the front-end
+    // can actually parse and surface to the user.
+    //
+    // Content-Length must match the body byte length or the server's
+    // body parser will hang waiting for more bytes (it respects the
+    // declared length, not what we actually write).
+    const invalidBody = 'not json!';  // 10 bytes
+    const raw = await new Promise((resolve, reject) => {
+      const req = http.request({
+        method: 'POST', host: '127.0.0.1', port: PORT, path: '/api/contact',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(invalidBody) },
+      }, (res) => {
+        const chunks = [];
+        res.on('data', c => chunks.push(c));
+        res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks).toString('utf8') }));
+      });
+      req.on('error', reject);
+      req.write(invalidBody);
+      req.end();
+    });
+    assert.equal(raw.status, 400);
+    assert.ok(/application\/json/.test(raw.headers['content-type'] || ''), `expected JSON, got ${raw.headers['content-type']}`);
+    const j = JSON.parse(raw.body);
+    assert.equal(j.success, false);
+    assert.match(j.error, /JSON|parse/i);
+  });
+
+  await test('POST /api/contact (payload too large → 413 JSON)', async () => {
+    // The 16kb body limit is enforced by express.json(). Without the
+    // error middleware this returns text/html "Payload Too Large";
+    // with it, JSON.
+    const big = 'x'.repeat(20000);
+    const raw = await new Promise((resolve, reject) => {
+      const body = JSON.stringify({ name: 'A', email: 'a@b.co', subject: 's', message: big });
+      const req = http.request({
+        method: 'POST', host: '127.0.0.1', port: PORT, path: '/api/contact',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+      }, (res) => {
+        const chunks = [];
+        res.on('data', c => chunks.push(c));
+        res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks).toString('utf8') }));
+      });
+      req.on('error', reject);
+      req.write(body);
+      req.end();
+    });
+    assert.equal(raw.status, 413);
+    assert.ok(/application\/json/.test(raw.headers['content-type'] || ''));
+    const j = JSON.parse(raw.body);
+    assert.equal(j.success, false);
+    assert.match(j.error, /large/i);
   });
 
   await test('GET / (JSON-LD Book/Person schema are correct)', async () => {
