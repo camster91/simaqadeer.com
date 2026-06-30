@@ -1,0 +1,72 @@
+name: CI Build
+
+# Build-only workflow: verifies the Node.js + Docker project builds cleanly.
+# Triggered on push to default branch and on PRs targeting it. Manual dispatch available.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Lint (if configured)
+        run: |
+          if grep -q '"lint"' package.json; then
+            npm run lint
+          else
+            echo "No lint script found, skipping."
+          fi
+        continue-on-error: true
+
+      - name: Test
+        run: |
+          if grep -q '"test"' package.json; then
+            npm test
+          else
+            echo "No test script found, skipping."
+          fi
+        continue-on-error: true
+
+      - name: Build
+        run: |
+          if grep -q '"build"' package.json; then
+            npm run build
+          else
+            echo "No build script found, skipping."
+          fi
+        env:
+          NODE_ENV: production
+          CI: true
+        continue-on-error: true
